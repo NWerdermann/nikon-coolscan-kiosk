@@ -9,6 +9,7 @@ Dieses Projekt verwandelt einen **Raspberry Pi 5** mit dem originalen **7" Touch
 * **Computer:** Raspberry Pi 5 (4 GB oder 8 GB)
 * **Display:** Original Raspberry Pi 7" Touch Display
 * **Netzteil:** Raspberry Pi 27W USB-C Power Supply (zwingend erforderlich für die 5A Stromversorgung des Scanners!)
+* **Gehäuse:** KKSB Display Stand for Raspberry Pi Touch Display 2 with Case for Raspberry Pi 5
 * **Scanner:** Nikon Coolscan IV, V, 4000 oder 5000 ED
 * **Software:** [VueScan Professional](https://www.hamrick.com/) (Linux 64-bit aarch64 Version)
 
@@ -35,10 +36,8 @@ Dieses Projekt verwandelt einen **Raspberry Pi 5** mit dem originalen **7" Touch
 Um das System vollautomatisch einzurichten, stelle sicher, dass die Datei `vuescan.tgz` bereits in deinem Home-Verzeichnis liegt. Führe dann diesen Befehl aus:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/DEIN_GITHUB_NAME/DEIN_REPO_NAME/main/setup_scanner.sh | bash
+curl -sSL https://raw.githubusercontent.com/NWerdermann/nikon-coolscan-kiosk/master/setup_scanner.sh | bash
 ```
-
-> **Hinweis:** Ersetze `DEIN_GITHUB_NAME` und `DEIN_REPO_NAME` durch die tatsächlichen Werte, sobald ein Repository erstellt wurde.
 
 ### Was das Skript macht
 
