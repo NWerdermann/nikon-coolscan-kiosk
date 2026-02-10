@@ -10,7 +10,7 @@ fi
 
 # --- 2. System updates & dependencies ---
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y cifs-utils novnc wayvnc
+sudo apt install -y cifs-utils nfs-common novnc wayvnc
 
 # --- 3. Allow USB access to Nikon scanner without root ---
 echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="04b0", MODE="0666", GROUP="plugdev"' | sudo tee /etc/udev/rules.d/99-nikon-coolscan.rules

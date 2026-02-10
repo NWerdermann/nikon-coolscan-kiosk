@@ -44,7 +44,7 @@ curl -sSL https://raw.githubusercontent.com/NWerdermann/nikon-coolscan-kiosk/mas
 ### What the script does
 
 1. Checks if `vuescan.tgz` is present (aborts if not).
-2. Installs system dependencies (`cifs-utils`, `novnc`, `wayvnc`).
+2. Installs system dependencies (`cifs-utils`, `nfs-common`, `novnc`, `wayvnc`).
 3. Creates a udev rule so the Nikon scanner can be accessed without root.
 4. Extracts VueScan to `/opt/vuescan/`.
 5. Disables the panel (`wf-panel-pi`) and on-screen keyboard (`squeekboard`) via the Wayfire configuration.
@@ -120,13 +120,29 @@ Open `/etc/fstab` with administrator privileges:
 sudo nano /etc/fstab
 ```
 
-Add the following line at the end. Replace `NAS_IP` and `SHARE_NAME` with your NAS IP and the name of the shared folder:
+Add **one** of the following lines at the end, depending on your preferred protocol.
+
+#### Option A: SMB/CIFS
+
+Replace `NAS_IP` and `SHARE_NAME` with your NAS IP and the name of the shared folder:
 
 ```text
 //NAS_IP/SHARE_NAME /home/admin/Scans cifs credentials=/home/admin/.nascreds,uid=1000,gid=1000,iocharset=utf8,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.device-timeout=30,nofail 0 0
 ```
 
+#### Option B: NFS
+
+Replace `NAS_IP` and the export path with your NAS values. NFS does not require a credentials file (authentication is handled by the NFS server via IP/hostname).
+
+```text
+NAS_IP:/volume/share /home/admin/Scans nfs rw,async,noatime,rsize=131072,wsize=131072,nolock,tcp,intr,_netdev,noauto,x-systemd.automount 0 0
+```
+
+> **Note:** The `async` option is important for NFS performance — without it, every write waits for server confirmation, which makes scanning noticeably slower.
+
 ### 4. Parameter Reference
+
+#### SMB/CIFS
 
 | Parameter | Description |
 |---|---|
@@ -134,6 +150,17 @@ Add the following line at the end. Replace `NAS_IP` and `SHARE_NAME` with your N
 | `uid=1000,gid=1000` | Grants the `admin` user full read/write access to the NAS files. |
 | `x-systemd.automount` | The mount is triggered only when VueScan accesses the folder. This prevents boot delays if the NAS is still in standby. |
 | `nofail` | The Pi boots cleanly even if the NAS is turned off. |
+
+#### NFS
+
+| Parameter | Description |
+|---|---|
+| `async` | Asynchronous writes — significantly improves performance. |
+| `noatime` | Disables access time updates, reducing unnecessary writes. |
+| `rsize=131072,wsize=131072` | 128 KB read/write block size for optimal throughput. |
+| `nolock` | Disables file locking (not needed for single-client scanning). |
+| `_netdev` | Tells systemd this is a network mount (wait for network before mounting). |
+| `x-systemd.automount` | Mount on first access, avoids boot delays if the NAS is offline. |
 
 ### 5. Write Protection for the Local Folder
 
