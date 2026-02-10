@@ -43,10 +43,12 @@ curl -sSL https://raw.githubusercontent.com/NWerdermann/nikon-coolscan-kiosk/mas
 
 1. Prüft, ob `vuescan.tgz` vorhanden ist (bricht ab, falls nicht).
 2. Installiert Systemabhängigkeiten (`cifs-utils`, `novnc`, `wayvnc`).
-3. Entpackt VueScan nach `/opt/vuescan/`.
-4. Deaktiviert Panel (`wf-panel-pi`) und On-Screen-Keyboard (`squeekboard`) über die Wayfire-Konfiguration.
-5. Erstellt ein Start-Skript, das VNC-Server, noVNC-Web-Interface und VueScan startet.
-6. Richtet den Autostart beim Booten ein.
+3. Erstellt eine udev-Regel, damit der Nikon-Scanner ohne Root-Rechte angesprochen werden kann.
+4. Entpackt VueScan nach `/opt/vuescan/`.
+5. Deaktiviert Panel (`wf-panel-pi`) und On-Screen-Keyboard (`squeekboard`) über die Wayfire-Konfiguration.
+6. Sperrt den Scan-Ordner mit `chattr +i` gegen lokales Schreiben (SD-Karten-Schutz).
+7. Erstellt ein Start-Skript, das VNC-Server, noVNC-Web-Interface und VueScan startet.
+8. Richtet den Autostart beim Booten ein.
 
 ---
 

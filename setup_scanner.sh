@@ -12,12 +12,16 @@ fi
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y cifs-utils novnc wayvnc
 
-# --- 3. VueScan Installation ---
+# --- 3. USB-Zugriff auf Nikon-Scanner ohne Root erlauben ---
+echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="04b0", MODE="0666", GROUP="plugdev"' | sudo tee /etc/udev/rules.d/99-nikon-coolscan.rules
+sudo udevadm control --reload-rules
+
+# --- 4. VueScan Installation ---
 sudo mkdir -p /opt/vuescan
 sudo tar -xf "$HOME/vuescan.tgz" -C /opt/vuescan/ --strip-components=1
 sudo chmod +x /opt/vuescan/vuescan
 
-# --- 4. UI-Elemente deaktivieren (Panel & On-Screen-Keyboard) ---
+# --- 5. UI-Elemente deaktivieren (Panel & On-Screen-Keyboard) ---
 WAYFIRE_CONFIG="$HOME/.config/wayfire.ini"
 
 # User-Config aus System-Config erzeugen, falls nicht vorhanden
@@ -42,11 +46,11 @@ fi
 pkill wf-panel-pi || true
 pkill squeekboard || true
 
-# --- 5. Scan-Ordner anlegen und gegen lokales Schreiben sperren ---
+# --- 6. Scan-Ordner anlegen und gegen lokales Schreiben sperren ---
 mkdir -p "$HOME/Scans"
 sudo chattr +i "$HOME/Scans"
 
-# --- 6. Master-Start-Skript erstellen ---
+# --- 7. Master-Start-Skript erstellen ---
 cat << 'STARTSCRIPT' > "$HOME/start-vuescan.sh"
 #!/bin/bash
 # Bildschirm drehen (DSI-2 auf 270 Grad / Portrait-Flip)
@@ -68,7 +72,7 @@ STARTSCRIPT
 
 chmod +x "$HOME/start-vuescan.sh"
 
-# --- 7. Autostart einrichten ---
+# --- 8. Autostart einrichten ---
 mkdir -p "$HOME/.config/autostart"
 cat << EOF > "$HOME/.config/autostart/kiosk.desktop"
 [Desktop Entry]
