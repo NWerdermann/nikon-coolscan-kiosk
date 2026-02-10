@@ -1,30 +1,32 @@
 # Nikon Coolscan Kiosk (Raspberry Pi 5)
 
-Dieses Projekt verwandelt einen **Raspberry Pi 5** mit dem originalen **7" Touch-Display** in eine dedizierte Scan-Station für **Nikon Coolscan** Filmscanner. Das System bootet im Kiosk-Modus direkt in **VueScan**, deaktiviert störende UI-Elemente und ermöglicht die Fernsteuerung über jeden Webbrowser via **noVNC**.
+This project turns a **Raspberry Pi 5** with the original **7" Touch Display** into a dedicated scanning station for **Nikon Coolscan** film scanners. The system boots in kiosk mode directly into **VueScan**, disables distracting UI elements, and provides remote control via any web browser through **noVNC**.
+
+> **[Deutsche Version / German Version](README.de.md)**
 
 ---
 
-## Einkaufsliste
+## Shopping List
 
-* **Computer:** Raspberry Pi 5 (4 GB oder 8 GB)
-* **Display:** Original Raspberry Pi 7" Touch Display
-* **Netzteil:** Raspberry Pi 27W USB-C Power Supply (zwingend erforderlich für die 5A Stromversorgung des Scanners!)
-* **Gehäuse:** KKSB Display Stand for Raspberry Pi Touch Display 2 with Case for Raspberry Pi 5
-* **Scanner:** Nikon Coolscan IV, V, 4000 oder 5000 ED
-* **Software:** [VueScan Professional](https://www.hamrick.com/) (Linux 64-bit aarch64 Version)
+* **Computer:** Raspberry Pi 5 (4 GB or 8 GB)
+* **Display:** Official Raspberry Pi 7" Touch Display
+* **Power Supply:** Raspberry Pi 27W USB-C Power Supply (required to deliver 5A for the scanner!)
+* **Case:** KKSB Display Stand for Raspberry Pi Touch Display 2 with Case for Raspberry Pi 5
+* **Scanner:** Nikon Coolscan IV, V, 4000 or 5000 ED
+* **Software:** [VueScan Professional](https://www.hamrick.com/) (Linux 64-bit aarch64 version)
 
 ---
 
-## Vorbereitung
+## Prerequisites
 
-1. **OS Installation:** Raspberry Pi OS (64-bit, Desktop) via *Raspberry Pi Imager* auf eine SD-Karte flashen.
-2. **User-Setup:** Erstelle beim Flashen einen Benutzer (z. B. `admin`).
-3. **Auto-Boot:** Damit der Pi startet, sobald er Strom bekommt (ohne Knopfdruck):
+1. **OS Installation:** Flash Raspberry Pi OS (64-bit, Desktop) onto an SD card using *Raspberry Pi Imager*.
+2. **User Setup:** Create a user (e.g. `admin`) during the flashing process.
+3. **Auto-Boot:** To make the Pi start as soon as it receives power (without pressing a button):
    ```bash
    sudo -E rpi-eeprom-config --edit
    ```
-   Setze `POWER_OFF_ON_HALT=0` und speichere.
-4. **USB-Power:** Damit der Pi 5 volle 5A an USB liefert, füge dies am Ende der `/boot/firmware/config.txt` hinzu:
+   Set `POWER_OFF_ON_HALT=0` and save.
+4. **USB Power:** To allow the Pi 5 to deliver the full 5A over USB, add this to the end of `/boot/firmware/config.txt`:
    ```text
    usb_max_current_enable=1
    ```
@@ -33,143 +35,143 @@ Dieses Projekt verwandelt einen **Raspberry Pi 5** mit dem originalen **7" Touch
 
 ## Installation
 
-Um das System vollautomatisch einzurichten, stelle sicher, dass die Datei `vuescan.tgz` bereits in deinem Home-Verzeichnis liegt. Führe dann diesen Befehl aus:
+To set up the system automatically, make sure the `vuescan.tgz` file is already in your home directory. Then run:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/NWerdermann/nikon-coolscan-kiosk/master/setup_scanner.sh | bash
 ```
 
-### Was das Skript macht
+### What the script does
 
-1. Prüft, ob `vuescan.tgz` vorhanden ist (bricht ab, falls nicht).
-2. Installiert Systemabhängigkeiten (`cifs-utils`, `novnc`, `wayvnc`).
-3. Erstellt eine udev-Regel, damit der Nikon-Scanner ohne Root-Rechte angesprochen werden kann.
-4. Entpackt VueScan nach `/opt/vuescan/`.
-5. Deaktiviert Panel (`wf-panel-pi`) und On-Screen-Keyboard (`squeekboard`) über die Wayfire-Konfiguration.
-6. Sperrt den Scan-Ordner mit `chattr +i` gegen lokales Schreiben (SD-Karten-Schutz).
-7. Erstellt ein Start-Skript, das VNC-Server, noVNC-Web-Interface und VueScan startet.
-8. Richtet den Autostart beim Booten ein.
+1. Checks if `vuescan.tgz` is present (aborts if not).
+2. Installs system dependencies (`cifs-utils`, `novnc`, `wayvnc`).
+3. Creates a udev rule so the Nikon scanner can be accessed without root.
+4. Extracts VueScan to `/opt/vuescan/`.
+5. Disables the panel (`wf-panel-pi`) and on-screen keyboard (`squeekboard`) via the Wayfire configuration.
+6. Locks the scan folder with `chattr +i` to prevent local writes (SD card protection).
+7. Creates a start script that launches the VNC server, noVNC web interface, and VueScan.
+8. Sets up autostart on boot.
 
 ---
 
-## Fernsteuerung (Web-Interface)
+## Remote Control (Web Interface)
 
-Da das 7" Touch-Display für die präzise Konfiguration von VueScan (z. B. Auswahl von Scan-Bereichen oder Farbabgleich) zu klein ist, verfügt dieser Kiosk über ein integriertes **noVNC**-Web-Interface. Dadurch kann der Desktop direkt im Browser gesteuert werden — ohne separate VNC-App.
+Since the 7" touch display is too small for precise VueScan configuration (e.g. selecting scan areas or color adjustments), this kiosk includes a built-in **noVNC** web interface. This allows the desktop to be controlled directly from a browser — no separate VNC app required.
 
-### Architektur
+### Architecture
 
 ```
 Browser (noVNC) --WebSocket--> websockify :6080 --VNC--> wayvnc :5900
 ```
 
-- **wayvnc** stellt den Wayland-Desktop als VNC-Server bereit (Port 5900).
-- **websockify** übersetzt zwischen WebSocket und VNC-Protokoll und liefert die noVNC-Webdateien aus (`/usr/share/novnc/`).
-- **noVNC** ist der HTML/JS-Client, der im Browser läuft.
+- **wayvnc** exposes the Wayland desktop as a VNC server (port 5900).
+- **websockify** translates between WebSocket and VNC protocol and serves the noVNC web files (`/usr/share/novnc/`).
+- **noVNC** is the HTML/JS client that runs in the browser.
 
-### Zugriff über den Browser
+### Browser Access
 
-1. Stelle sicher, dass sich dein PC/Mac im selben Netzwerk wie der Raspberry Pi befindet.
-2. Öffne einen modernen Webbrowser (Chrome, Firefox, Edge).
-3. Gib die IP-Adresse deines Pi gefolgt vom Port `6080` ein:
+1. Make sure your PC/Mac is on the same network as the Raspberry Pi.
+2. Open a modern web browser (Chrome, Firefox, Edge).
+3. Enter your Pi's IP address followed by port `6080`:
    ```text
-   http://<IP-DEINES-PI>:6080/vnc.html
+   http://<YOUR-PI-IP>:6080/vnc.html
    ```
 
 ---
 
-## NAS-Anbindung (Netzwerkspeicher)
+## NAS Integration (Network Storage)
 
-Damit die Scans direkt auf einem NAS (z. B. Synology, QNAP oder TrueNAS) gespeichert werden und nicht die SD-Karte des Pi füllen, muss die Netzwerkfreigabe eingebunden werden.
+To save scans directly to a NAS (e.g. Synology, QNAP, or TrueNAS) instead of filling up the Pi's SD card, the network share needs to be mounted.
 
-### 1. Vorbereitung
+### 1. Preparation
 
-Erstelle zuerst einen lokalen Ordner (Mount-Point) auf dem Pi:
+First, create a local folder (mount point) on the Pi:
 
 ```bash
 mkdir -p ~/Scans
 ```
 
-### 2. Zugangsdaten sicher hinterlegen
+### 2. Store Credentials Securely
 
-Erstelle eine versteckte Datei für deine NAS-Logins:
+Create a hidden file for your NAS login:
 
 ```bash
 nano ~/.nascreds
 ```
 
-Füge dort deinen Benutzernamen und dein Passwort ein:
+Add your username and password:
 
 ```text
-username=DEIN_NAS_USER
-password=DEIN_NAS_PASSWORT
+username=YOUR_NAS_USER
+password=YOUR_NAS_PASSWORD
 ```
 
-Sichere die Datei ab, damit nur du sie lesen kannst:
+Secure the file so only you can read it:
 
 ```bash
 chmod 600 ~/.nascreds
 ```
 
-### 3. Systemkonfiguration anpassen (fstab)
+### 3. Configure the System (fstab)
 
-Öffne die Datei `/etc/fstab` mit Administratorrechten:
+Open `/etc/fstab` with administrator privileges:
 
 ```bash
 sudo nano /etc/fstab
 ```
 
-Füge am Ende der Datei die folgende Zeile hinzu. Ersetze `IP_NAS` und `ORDNERNAME` durch die IP deines NAS und den Namen des freigegebenen Ordners:
+Add the following line at the end. Replace `NAS_IP` and `SHARE_NAME` with your NAS IP and the name of the shared folder:
 
 ```text
-//IP_NAS/ORDNERNAME /home/admin/Scans cifs credentials=/home/admin/.nascreds,uid=1000,gid=1000,iocharset=utf8,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.device-timeout=30,nofail 0 0
+//NAS_IP/SHARE_NAME /home/admin/Scans cifs credentials=/home/admin/.nascreds,uid=1000,gid=1000,iocharset=utf8,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.device-timeout=30,nofail 0 0
 ```
 
-### 4. Erklärung der Parameter
+### 4. Parameter Reference
 
-| Parameter | Beschreibung |
+| Parameter | Description |
 |---|---|
-| `credentials=...` | Nutzt die soeben erstellte versteckte Datei für den Login. |
-| `uid=1000,gid=1000` | Gibt dem Benutzer `admin` volle Schreib- und Leserechte auf die NAS-Dateien. |
-| `x-systemd.automount` | Der Mount wird erst ausgelöst, wenn VueScan auf den Ordner zugreift. Das verhindert Boot-Verzögerungen, falls das NAS noch im Standby ist. |
-| `nofail` | Der Pi bootet auch dann sauber durch, wenn das NAS einmal ausgeschaltet sein sollte. |
+| `credentials=...` | Uses the hidden credentials file created above. |
+| `uid=1000,gid=1000` | Grants the `admin` user full read/write access to the NAS files. |
+| `x-systemd.automount` | The mount is triggered only when VueScan accesses the folder. This prevents boot delays if the NAS is still in standby. |
+| `nofail` | The Pi boots cleanly even if the NAS is turned off. |
 
-### 5. Schreibschutz für den lokalen Ordner
+### 5. Write Protection for the Local Folder
 
-Damit VueScan niemals versehentlich auf die SD-Karte schreibt (z. B. wenn das NAS nicht erreichbar ist), wird der leere Mount-Ordner mit einem Immutable-Flag gesperrt. Sobald das NAS gemountet wird, überlagert der Mount diese Sperre automatisch.
+To prevent VueScan from accidentally writing to the SD card (e.g. when the NAS is unreachable), the empty mount folder is locked with an immutable flag. When the NAS is mounted, the mount automatically overlays this protection.
 
 ```bash
-# NAS kurz aushängen (falls bereits gemountet)
+# Unmount NAS briefly (if already mounted)
 sudo umount ~/Scans
 
-# Den leeren Ordner gegen Schreiben sperren
+# Lock the empty folder against writes
 sudo chattr +i ~/Scans
 
-# NAS wieder einhängen
+# Remount NAS
 sudo mount -a
 ```
 
-> **Hinweis:** Das Setup-Skript setzt `chattr +i` automatisch beim ersten Durchlauf. Die obigen Befehle sind nur nötig, falls du den Schutz nachträglich einrichten möchtest.
+> **Note:** The setup script sets `chattr +i` automatically on the first run. The commands above are only needed if you want to set up the protection retroactively.
 
-### 6. Testen
+### 6. Testing
 
-Führe diesen Befehl aus, um die Konfiguration ohne Neustart zu laden:
+Run this command to load the configuration without rebooting:
 
 ```bash
 sudo mount -a
 ```
 
-Überprüfe mit `ls ~/Scans`, ob der Inhalt deines NAS-Ordners angezeigt wird.
+Verify with `ls ~/Scans` that the contents of your NAS folder are displayed.
 
 ---
 
-## System abhärten (Read-Only Mode)
+## Hardening the System (Read-Only Mode)
 
-Um die SD-Karte vor Defekten durch hartes Ausschalten zu schützen, sollte das System in den Read-Only Modus versetzt werden:
+To protect the SD card from corruption caused by hard power-offs, the system should be put into read-only mode:
 
-1. `sudo raspi-config` ausführen.
-2. Unter **Performance Options** -> **Overlay File System** auf **Enable** setzen.
-3. Die Schreibsperre für die Boot-Partition ebenfalls aktivieren.
+1. Run `sudo raspi-config`.
+2. Under **Performance Options** -> **Overlay File System**, set to **Enable**.
+3. Also enable the write protection for the boot partition.
 
-Ab jetzt ist das System immun gegen Dateisystemfehler. Scans werden weiterhin sicher auf dem NAS gespeichert, da der Netzwerk-Mount vom Schreibschutz ausgenommen ist.
+The system is now immune to filesystem errors. Scans are still saved securely to the NAS, since the network mount is exempt from the write protection.
 
-> **Wichtig:** Dieser Schritt sollte erst ganz zum Schluss durchgeführt werden, nachdem alles konfiguriert und getestet wurde. Um später Änderungen vorzunehmen, muss der Overlay-Modus vorübergehend wieder deaktiviert werden.
+> **Important:** This step should only be performed at the very end, after everything has been configured and tested. To make changes later, the overlay mode must be temporarily disabled again.
