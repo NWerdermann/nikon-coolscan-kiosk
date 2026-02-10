@@ -164,12 +164,25 @@ sudo mount -a
 
 ## System abhärten (Read-Only Mode)
 
-Um die SD-Karte vor Defekten durch hartes Ausschalten zu schützen, sollte das System in den Read-Only Modus versetzt werden:
+Um die SD-Karte vor Defekten durch hartes Ausschalten zu schützen, kann das Root-Dateisystem mit einem tmpfs überlagert werden. Der Parameter `recurse=0` stellt sicher, dass nur das Root-Dateisystem überlagert wird — der NAS-Mount bleibt beschreibbar.
 
-1. `sudo raspi-config` ausführen.
-2. Unter **Performance Options** -> **Overlay File System** auf **Enable** setzen.
-3. Die Schreibsperre für die Boot-Partition ebenfalls aktivieren.
+Ein Hilfs-Skript zum Aktivieren/Deaktivieren ist enthalten:
 
-Ab jetzt ist das System immun gegen Dateisystemfehler. Scans werden weiterhin sicher auf dem NAS gespeichert, da der Netzwerk-Mount vom Schreibschutz ausgenommen ist.
+```bash
+# Skript herunterladen
+curl -sSL https://raw.githubusercontent.com/NWerdermann/nikon-coolscan-kiosk/master/overlay.sh -o ~/overlay.sh
+chmod +x ~/overlay.sh
 
-> **Wichtig:** Dieser Schritt sollte erst ganz zum Schluss durchgeführt werden, nachdem alles konfiguriert und getestet wurde. Um später Änderungen vorzunehmen, muss der Overlay-Modus vorübergehend wieder deaktiviert werden.
+# Read-Only Modus aktivieren
+sudo ~/overlay.sh enable
+
+# Aktuellen Status prüfen
+~/overlay.sh status
+
+# Für Änderungen deaktivieren
+sudo ~/overlay.sh disable
+```
+
+Das Skript ergänzt `/boot/firmware/cmdline.txt` um den Parameter `overlayroot=tmpfs:recurse=0`. Ein Neustart ist erforderlich, damit die Änderung wirksam wird.
+
+> **Wichtig:** Dieser Schritt sollte erst ganz zum Schluss durchgeführt werden, nachdem alles konfiguriert und getestet wurde. Um später Änderungen vorzunehmen, zuerst den Overlay deaktivieren und neu starten.

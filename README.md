@@ -166,12 +166,25 @@ Verify with `ls ~/Scans` that the contents of your NAS folder are displayed.
 
 ## Hardening the System (Read-Only Mode)
 
-To protect the SD card from corruption caused by hard power-offs, the system should be put into read-only mode:
+To protect the SD card from corruption caused by hard power-offs, the root filesystem can be overlaid with a tmpfs. The `recurse=0` parameter ensures that only the root filesystem is overlaid — the NAS mount remains writable.
 
-1. Run `sudo raspi-config`.
-2. Under **Performance Options** -> **Overlay File System**, set to **Enable**.
-3. Also enable the write protection for the boot partition.
+A helper script is included to enable/disable the overlay:
 
-The system is now immune to filesystem errors. Scans are still saved securely to the NAS, since the network mount is exempt from the write protection.
+```bash
+# Download the script
+curl -sSL https://raw.githubusercontent.com/NWerdermann/nikon-coolscan-kiosk/master/overlay.sh -o ~/overlay.sh
+chmod +x ~/overlay.sh
 
-> **Important:** This step should only be performed at the very end, after everything has been configured and tested. To make changes later, the overlay mode must be temporarily disabled again.
+# Enable read-only mode
+sudo ~/overlay.sh enable
+
+# Check current status
+~/overlay.sh status
+
+# Disable for making changes
+sudo ~/overlay.sh disable
+```
+
+The script modifies `/boot/firmware/cmdline.txt` by appending `overlayroot=tmpfs:recurse=0`. A reboot is required for changes to take effect.
+
+> **Important:** This step should only be performed at the very end, after everything has been configured and tested. To make changes later, disable the overlay and reboot first.
