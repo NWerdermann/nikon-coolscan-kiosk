@@ -159,3 +159,17 @@ sudo mount -a
 ```
 
 Überprüfe mit `ls ~/Scans`, ob der Inhalt deines NAS-Ordners angezeigt wird.
+
+---
+
+## System abhärten (Read-Only Mode)
+
+Um die SD-Karte vor Defekten durch hartes Ausschalten zu schützen, sollte das System in den Read-Only Modus versetzt werden:
+
+1. `sudo raspi-config` ausführen.
+2. Unter **Performance Options** -> **Overlay File System** auf **Enable** setzen.
+3. Die Schreibsperre für die Boot-Partition ebenfalls aktivieren.
+
+Ab jetzt ist das System immun gegen Dateisystemfehler. Scans werden weiterhin sicher auf dem NAS gespeichert, da der Netzwerk-Mount vom Schreibschutz ausgenommen ist.
+
+> **Wichtig:** Dieser Schritt sollte erst ganz zum Schluss durchgeführt werden, nachdem alles konfiguriert und getestet wurde. Um später Änderungen vorzunehmen, muss der Overlay-Modus vorübergehend wieder deaktiviert werden.
