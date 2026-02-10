@@ -42,7 +42,11 @@ fi
 pkill wf-panel-pi || true
 pkill squeekboard || true
 
-# --- 5. Master-Start-Skript erstellen ---
+# --- 5. Scan-Ordner anlegen und gegen lokales Schreiben sperren ---
+mkdir -p "$HOME/Scans"
+sudo chattr +i "$HOME/Scans"
+
+# --- 6. Master-Start-Skript erstellen ---
 cat << 'STARTSCRIPT' > "$HOME/start-vuescan.sh"
 #!/bin/bash
 # Bildschirm drehen (DSI-2 auf 270 Grad / Portrait-Flip)
@@ -64,7 +68,7 @@ STARTSCRIPT
 
 chmod +x "$HOME/start-vuescan.sh"
 
-# --- 6. Autostart einrichten ---
+# --- 7. Autostart einrichten ---
 mkdir -p "$HOME/.config/autostart"
 cat << EOF > "$HOME/.config/autostart/kiosk.desktop"
 [Desktop Entry]

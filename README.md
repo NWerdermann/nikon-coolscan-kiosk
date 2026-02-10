@@ -131,7 +131,24 @@ Füge am Ende der Datei die folgende Zeile hinzu. Ersetze `IP_NAS` und `ORDNERNA
 | `x-systemd.automount` | Der Mount wird erst ausgelöst, wenn VueScan auf den Ordner zugreift. Das verhindert Boot-Verzögerungen, falls das NAS noch im Standby ist. |
 | `nofail` | Der Pi bootet auch dann sauber durch, wenn das NAS einmal ausgeschaltet sein sollte. |
 
-### 5. Testen
+### 5. Schreibschutz für den lokalen Ordner
+
+Damit VueScan niemals versehentlich auf die SD-Karte schreibt (z. B. wenn das NAS nicht erreichbar ist), wird der leere Mount-Ordner mit einem Immutable-Flag gesperrt. Sobald das NAS gemountet wird, überlagert der Mount diese Sperre automatisch.
+
+```bash
+# NAS kurz aushängen (falls bereits gemountet)
+sudo umount ~/Scans
+
+# Den leeren Ordner gegen Schreiben sperren
+sudo chattr +i ~/Scans
+
+# NAS wieder einhängen
+sudo mount -a
+```
+
+> **Hinweis:** Das Setup-Skript setzt `chattr +i` automatisch beim ersten Durchlauf. Die obigen Befehle sind nur nötig, falls du den Schutz nachträglich einrichten möchtest.
+
+### 6. Testen
 
 Führe diesen Befehl aus, um die Konfiguration ohne Neustart zu laden:
 
