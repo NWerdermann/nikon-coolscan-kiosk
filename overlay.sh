@@ -28,6 +28,9 @@ case "${1:-}" in
             exit 0
         fi
 
+        # Remount boot partition as read-write (needed when overlay is active)
+        sudo mount -o remount,rw /boot/firmware 2>/dev/null || true
+
         # Remove parameter from the kernel command line
         sudo sed -i "s| $OVERLAY_PARAM||" "$CMDLINE"
         echo "Overlay disabled. Reboot to restore read-write mode."
