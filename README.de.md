@@ -47,8 +47,9 @@ curl -sSL https://raw.githubusercontent.com/NWerdermann/nikon-coolscan-kiosk/mas
 4. Entpackt VueScan nach `/opt/vuescan/`.
 5. Deaktiviert Panel (`wf-panel-pi`) und On-Screen-Keyboard (`squeekboard`) über die Wayfire-Konfiguration.
 6. Sperrt den Scan-Ordner mit `chattr +i` gegen lokales Schreiben (SD-Karten-Schutz).
-7. Erstellt ein Start-Skript, das VNC-Server, noVNC-Web-Interface und VueScan startet.
-8. Richtet den Autostart beim Booten ein.
+7. Konfiguriert den Fernzugriff: Deaktiviert Auth/TLS in wayvnc, setzt noVNC-Defaults (Autoconnect, Skalierung, Reconnect).
+8. Erstellt ein Start-Skript, das noVNC-Web-Interface und VueScan startet.
+9. Richtet den Autostart beim Booten ein.
 
 ---
 
@@ -186,6 +187,35 @@ sudo mount -a
 ```
 
 Überprüfe mit `ls ~/Scans`, ob der Inhalt deines NAS-Ordners angezeigt wird.
+
+---
+
+## VueScan-Profile
+
+Dieses Repository enthält fertige VueScan-Profile für den Nikon Coolscan 5000 ED:
+
+| Profil | Beschreibung |
+|---|---|
+| `Negativ-Flat-RGBI.ini` | Flacher Scan mit RGBI (Infrarotkanal), keine automatische Korrektur. Ideal für manuelle Nachbearbeitung. |
+| `Nikon automatisch.ini` | Automatische Farbkorrektur durch VueScan. Schnelle Ergebnisse ohne manuelle Eingriffe. |
+
+### Profil auf den Pi herunterladen
+
+```bash
+curl -sSL https://raw.githubusercontent.com/NWerdermann/nikon-coolscan-kiosk/master/Negativ-Flat-RGBI.ini -o ~/.vuescan/Negativ-Flat-RGBI.ini
+```
+
+```bash
+curl -sSL https://raw.githubusercontent.com/NWerdermann/nikon-coolscan-kiosk/master/Nikon%20automatisch.ini -o ~/.vuescan/Nikon\ automatisch.ini
+```
+
+### VueScan neu starten (um aktualisierte Profile zu laden)
+
+```bash
+pkill vuescan; /opt/vuescan/vuescan &
+```
+
+> **Hinweis:** VueScan liest seine Profile beim Start aus `~/.vuescan/`. Nach dem Herunterladen oder Aktualisieren eines Profils muss VueScan neu gestartet werden, damit die Änderungen übernommen werden.
 
 ---
 

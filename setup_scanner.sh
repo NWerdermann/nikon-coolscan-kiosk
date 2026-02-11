@@ -50,19 +50,30 @@ pkill squeekboard || true
 mkdir -p "$HOME/Scans"
 sudo chattr +i "$HOME/Scans"
 
-# --- 7. Create master start script ---
+# --- 7. Configure remote access (wayvnc + noVNC) ---
+# Disable auth/TLS in system wayvnc (local kiosk, no auth needed)
+sudo tee /etc/wayvnc/config > /dev/null << 'WAYVNCCONF'
+use_relative_paths=true
+address=::
+enable_auth=false
+enable_pam=false
+WAYVNCCONF
+
+# Set noVNC defaults (autoconnect, scaling, reconnect)
+sudo tee /usr/share/novnc/defaults.json > /dev/null << 'NOVNCCONF'
+{"autoconnect": true, "resize": "scale", "reconnect": true, "reconnect_delay": 1000}
+NOVNCCONF
+
+sudo systemctl restart wayvnc
+
+# --- 8. Create master start script ---
 cat << 'STARTSCRIPT' > "$HOME/start-vuescan.sh"
 #!/bin/bash
 # Rotate display (DSI-2 to 270 degrees / portrait flip)
 wlr-randr --output DSI-2 --transform 270
 
-# Start VNC server
-pkill wayvnc || true
-sleep 1
-wayvnc --render-cursor 0.0.0.0 5900 &
-sleep 1
-
 # Start noVNC web interface (browser access on port 6080)
+# System wayvnc already runs on port 5900
 pkill -f websockify || true
 websockify --web /usr/share/novnc/ 6080 localhost:5900 &
 
@@ -72,7 +83,7 @@ STARTSCRIPT
 
 chmod +x "$HOME/start-vuescan.sh"
 
-# --- 8. Set up autostart ---
+# --- 9. Set up autostart ---
 mkdir -p "$HOME/.config/autostart"
 cat << EOF > "$HOME/.config/autostart/kiosk.desktop"
 [Desktop Entry]
