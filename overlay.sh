@@ -17,6 +17,9 @@ case "${1:-}" in
             exit 0
         fi
 
+        # Remount boot partition as read-write (may be read-only)
+        sudo mount -o remount,rw /boot/firmware 2>/dev/null || true
+
         # Append parameter to the kernel command line
         sudo sed -i "s|$| $OVERLAY_PARAM|" "$CMDLINE"
         echo "Overlay enabled. Reboot to activate read-only mode."
